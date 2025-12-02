@@ -1,0 +1,33 @@
+{
+  "kind": "collectionType",
+  "collectionName": "designs",
+  "info": {
+    "singularName": "design",
+    "pluralName": "designs",
+    "displayName": "Design",
+    "description": "User created designs"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "description": {
+      "type": "text"
+    },
+    "imageUrl": {
+      "type": "text",
+      "required": true
+    },
+    "canvasData": {
+      "type": "json"
+    },
+    "user": {
+      "type": "string"
+    }
+  }
+}

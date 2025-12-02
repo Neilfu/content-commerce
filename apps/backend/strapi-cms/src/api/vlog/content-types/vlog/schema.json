@@ -1,0 +1,41 @@
+{
+  "kind": "collectionType",
+  "collectionName": "vlogs",
+  "info": {
+    "singularName": "vlog",
+    "pluralName": "vlogs",
+    "displayName": "vlog"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "title": {
+      "type": "string"
+    },
+    "video": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "cover": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "createtime": {
+      "type": "datetime"
+    }
+  }
+}

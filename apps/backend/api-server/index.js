@@ -4,7 +4,7 @@ import db from './db.js';
 import './seed.js'; // Run seed on startup
 
 const app = express();
-const PORT = 9000;
+const PORT = 9001; // Changed from 9000 to avoid conflict with Medusa
 
 // Middleware
 app.use(cors());
