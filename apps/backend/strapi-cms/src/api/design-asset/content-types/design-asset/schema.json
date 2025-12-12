@@ -1,0 +1,35 @@
+{
+  "kind": "collectionType",
+  "collectionName": "design_assets",
+  "info": {
+    "singularName": "design-asset",
+    "pluralName": "design-assets",
+    "displayName": "Design Asset",
+    "description": "Raw design assets uploaded by creators"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "media": {
+      "type": "media",
+      "multiple": false,
+      "required": true,
+      "allowedTypes": [
+        "images"
+      ]
+    },
+    "tags": {
+      "type": "json"
+    },
+    "creator": {
+      "type": "string",
+      "required": true
+    }
+  }
+}

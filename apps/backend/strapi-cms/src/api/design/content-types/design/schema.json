@@ -28,6 +28,14 @@
     },
     "user": {
       "type": "string"
+    },
+    "productTemplate": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::product-template.product-template"
+    },
+    "medusaVariantId": {
+      "type": "string"
     }
   }
 }

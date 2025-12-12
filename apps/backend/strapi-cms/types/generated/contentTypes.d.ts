@@ -464,6 +464,38 @@ export interface ApiCreatorCreator extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiDesignAssetDesignAsset extends Struct.CollectionTypeSchema {
+  collectionName: 'design_assets';
+  info: {
+    description: 'Raw design assets uploaded by creators';
+    displayName: 'Design Asset';
+    pluralName: 'design-assets';
+    singularName: 'design-asset';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    creator: Schema.Attribute.String & Schema.Attribute.Required;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::design-asset.design-asset'
+    > &
+      Schema.Attribute.Private;
+    media: Schema.Attribute.Media<'images'> & Schema.Attribute.Required;
+    name: Schema.Attribute.String & Schema.Attribute.Required;
+    publishedAt: Schema.Attribute.DateTime;
+    tags: Schema.Attribute.JSON;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiDesignDesign extends Struct.CollectionTypeSchema {
   collectionName: 'designs';
   info: {
@@ -488,12 +520,130 @@ export interface ApiDesignDesign extends Struct.CollectionTypeSchema {
       'api::design.design'
     > &
       Schema.Attribute.Private;
+    medusaVariantId: Schema.Attribute.String;
     name: Schema.Attribute.String & Schema.Attribute.Required;
+    productTemplate: Schema.Attribute.Relation<
+      'oneToOne',
+      'api::product-template.product-template'
+    >;
     publishedAt: Schema.Attribute.DateTime;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
     user: Schema.Attribute.String;
+  };
+}
+
+export interface ApiProductTemplateProductTemplate
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'product_templates';
+  info: {
+    description: 'Creator designs applied to standard products';
+    displayName: 'Product Template';
+    pluralName: 'product-templates';
+    singularName: 'product-template';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    creator: Schema.Attribute.String & Schema.Attribute.Required;
+    defaultConfig: Schema.Attribute.JSON;
+    designAsset: Schema.Attribute.Relation<
+      'oneToOne',
+      'api::design-asset.design-asset'
+    >;
+    isPublic: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::product-template.product-template'
+    > &
+      Schema.Attribute.Private;
+    medusaProductId: Schema.Attribute.String & Schema.Attribute.Required;
+    name: Schema.Attribute.String & Schema.Attribute.Required;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiUserProfileUserProfile extends Struct.CollectionTypeSchema {
+  collectionName: 'user_profiles';
+  info: {
+    description: 'Extended user profile information';
+    displayName: 'User Profile';
+    pluralName: 'user-profiles';
+    singularName: 'user-profile';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    avatar: Schema.Attribute.Media<'images'>;
+    bio: Schema.Attribute.Text;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    firstName: Schema.Attribute.String;
+    lastName: Schema.Attribute.String;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::user-profile.user-profile'
+    > &
+      Schema.Attribute.Private;
+    phone: Schema.Attribute.String;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    user: Schema.Attribute.Relation<
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
+  };
+}
+
+export interface ApiVerificationTokenVerificationToken
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'verification_tokens';
+  info: {
+    description: 'Email verification tokens for user registration';
+    displayName: 'Verification Token';
+    pluralName: 'verification-tokens';
+    singularName: 'verification-token';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    email: Schema.Attribute.Email & Schema.Attribute.Required;
+    expiresAt: Schema.Attribute.DateTime & Schema.Attribute.Required;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::verification-token.verification-token'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    token: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.Unique;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    used: Schema.Attribute.Boolean &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<false>;
+    userId: Schema.Attribute.Integer & Schema.Attribute.Required;
   };
 }
 
@@ -1036,7 +1186,11 @@ declare module '@strapi/strapi' {
       'admin::transfer-token-permission': AdminTransferTokenPermission;
       'admin::user': AdminUser;
       'api::creator.creator': ApiCreatorCreator;
+      'api::design-asset.design-asset': ApiDesignAssetDesignAsset;
       'api::design.design': ApiDesignDesign;
+      'api::product-template.product-template': ApiProductTemplateProductTemplate;
+      'api::user-profile.user-profile': ApiUserProfileUserProfile;
+      'api::verification-token.verification-token': ApiVerificationTokenVerificationToken;
       'api::vlog.vlog': ApiVlogVlog;
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;

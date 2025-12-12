@@ -1,0 +1,38 @@
+{
+  "kind": "collectionType",
+  "collectionName": "verification_tokens",
+  "info": {
+    "singularName": "verification-token",
+    "pluralName": "verification-tokens",
+    "displayName": "Verification Token",
+    "description": "Email verification tokens for user registration"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "token": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "email": {
+      "type": "email",
+      "required": true
+    },
+    "userId": {
+      "type": "integer",
+      "required": true
+    },
+    "expiresAt": {
+      "type": "datetime",
+      "required": true
+    },
+    "used": {
+      "type": "boolean",
+      "default": false,
+      "required": true
+    }
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "kind": "collectionType",
+  "collectionName": "product_templates",
+  "info": {
+    "singularName": "product-template",
+    "pluralName": "product-templates",
+    "displayName": "Product Template",
+    "description": "Creator designs applied to standard products"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "medusaProductId": {
+      "type": "string",
+      "required": true
+    },
+    "designAsset": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::design-asset.design-asset"
+    },
+    "defaultConfig": {
+      "type": "json"
+    },
+    "creator": {
+      "type": "string",
+      "required": true
+    },
+    "isPublic": {
+      "type": "boolean",
+      "default": false
+    }
+  }
+}
