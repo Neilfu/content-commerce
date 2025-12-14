@@ -22,13 +22,14 @@ Write-Host ""
 
 # Step 1: 测试注册
 Write-Host "Step 1: 测试用户注册..." -ForegroundColor Green
-try {
-    $response = Invoke-WebRequest -Uri "http://localhost:3000/api/auth/register" `
-        -Method POST `
-        -ContentType "application/json" `
-        -Body $testData `
-        -ErrorAction Stop
 
+$response = Invoke-WebRequest -Uri "http://localhost:3000/api/auth/register" `
+    -Method POST `
+    -ContentType "application/json" `
+    -Body $testData `
+    -SkipHttpErrorCheck
+
+if ($response.StatusCode -eq 201) {
     Write-Host "✅ 注册成功!" -ForegroundColor Green
     Write-Host "响应状态: $($response.StatusCode)" -ForegroundColor Gray
     
@@ -37,9 +38,10 @@ try {
     Write-Host "用户邮箱: $($result.user.email)" -ForegroundColor Gray
     Write-Host ""
 }
-catch {
+else {
     Write-Host "❌ 注册失败!" -ForegroundColor Red
-    Write-Host "错误: $($_.Exception.Message)" -ForegroundColor Red
+    Write-Host "状态码: $($response.StatusCode)" -ForegroundColor Red
+    Write-Host "错误信息: $($response.Content)" -ForegroundColor Red
     Write-Host ""
     Write-Host "请检查:" -ForegroundColor Yellow
     Write-Host "1. Next.js 服务器是否运行 (http://localhost:3000)" -ForegroundColor Yellow
@@ -58,11 +60,16 @@ try {
         -ErrorAction Stop
     
     $latestProfile = $profiles.data | Select-Object -Last 1
+    Write-Host "Debug: Profile Object: $($latestProfile | ConvertTo-Json -Depth 5)" -ForegroundColor Cyan
     if ($latestProfile) {
         Write-Host "✅ User Profile 已创建" -ForegroundColor Green
         Write-Host "  - ID: $($latestProfile.id)" -ForegroundColor Gray
-        Write-Host "  - First Name: $($latestProfile.attributes.firstName)" -ForegroundColor Gray
-        Write-Host "  - Last Name: $($latestProfile.attributes.lastName)" -ForegroundColor Gray
+        # 尝试适配扁平结构或 attributes 结构
+        $firstName = if ($latestProfile.firstName) { $latestProfile.firstName } else { $latestProfile.attributes.firstName }
+        $lastName = if ($latestProfile.lastName) { $latestProfile.lastName } else { $latestProfile.attributes.lastName }
+        
+        Write-Host "  - First Name: $firstName" -ForegroundColor Gray
+        Write-Host "  - Last Name: $lastName" -ForegroundColor Gray
     }
     else {
         Write-Host "⚠️  未找到 User Profile" -ForegroundColor Yellow
@@ -80,15 +87,23 @@ try {
         -ErrorAction Stop
     
     $token = $tokens.data | Select-Object -Last 1
+    Write-Host "Debug: Token Object: $($token | ConvertTo-Json -Depth 5)" -ForegroundColor Cyan
     if ($token) {
         Write-Host "✅ Verification Token 已创建" -ForegroundColor Green
-        Write-Host "  - ID: $($token.id)" -ForegroundColor Gray
-        Write-Host "  - Token: $($token.attributes.token)" -ForegroundColor Gray
-        Write-Host "  - Email: $($token.attributes.email)" -ForegroundColor Gray
-        Write-Host "  - Used: $($token.attributes.used)" -ForegroundColor Gray
-        Write-Host "  - Expires At: $($token.attributes.expiresAt)" -ForegroundColor Gray
         
-        $verificationToken = $token.attributes.token
+        # 适配扁平结构
+        $tokenValue = if ($token.token) { $token.token } else { $token.attributes.token }
+        $emailValue = if ($token.email) { $token.email } else { $token.attributes.email }
+        $usedValue = if ($token.used) { $token.used } else { $token.attributes.used }
+        $expiresAtValue = if ($token.expiresAt) { $token.expiresAt } else { $token.attributes.expiresAt }
+
+        Write-Host "  - ID: $($token.id)" -ForegroundColor Gray
+        Write-Host "  - Token: $tokenValue" -ForegroundColor Gray
+        Write-Host "  - Email: $emailValue" -ForegroundColor Gray
+        Write-Host "  - Used: $usedValue" -ForegroundColor Gray
+        Write-Host "  - Expires At: $expiresAtValue" -ForegroundColor Gray
+        
+        $verificationToken = $tokenValue
     }
     else {
         Write-Host "⚠️  未找到 Verification Token" -ForegroundColor Yellow
@@ -105,24 +120,25 @@ Write-Host ""
 
 # Step 3: 测试邮箱验证
 Write-Host "Step 3: 测试邮箱验证..." -ForegroundColor Green
-try {
-    $verifyData = @{
-        token = $verificationToken
-    } | ConvertTo-Json
+$verifyData = @{
+    token = $verificationToken
+} | ConvertTo-Json
 
-    $verifyResponse = Invoke-WebRequest -Uri "http://localhost:3000/api/auth/verify-email" `
-        -Method POST `
-        -ContentType "application/json" `
-        -Body $verifyData `
-        -ErrorAction Stop
+$verifyResponse = Invoke-WebRequest -Uri "http://localhost:3000/api/auth/verify-email" `
+    -Method POST `
+    -ContentType "application/json" `
+    -Body $verifyData `
+    -SkipHttpErrorCheck
 
+if ($verifyResponse.StatusCode -eq 200) {
     Write-Host "✅ 邮箱验证成功!" -ForegroundColor Green
     Write-Host "响应状态: $($verifyResponse.StatusCode)" -ForegroundColor Gray
     Write-Host ""
 }
-catch {
+else {
     Write-Host "❌ 邮箱验证失败!" -ForegroundColor Red
-    Write-Host "错误: $($_.Exception.Message)" -ForegroundColor Red
+    Write-Host "状态码: $($verifyResponse.StatusCode)" -ForegroundColor Red
+    Write-Host "错误信息: $($verifyResponse.Content)" -ForegroundColor Red
     Write-Host ""
     exit 1
 }
@@ -132,11 +148,24 @@ Write-Host "Step 4: 验证最终结果..." -ForegroundColor Green
 
 # 检查 Token 是否标记为已使用
 try {
+    $tokenId = if ($token.documentId) { $token.documentId } else { $token.id }
+    $updatedTokens = Invoke-RestMethod -Uri "http://localhost:1337/api/verification-tokens/$tokenId" `
+        -Method GET `
+        -ErrorAction Stop
+    
     $updatedTokens = Invoke-RestMethod -Uri "http://localhost:1337/api/verification-tokens/$($token.id)" `
         -Method GET `
         -ErrorAction Stop
     
-    if ($updatedTokens.data.attributes.used -eq $true) {
+    Write-Host "Debug: Updated Token Response: $($updatedTokens | ConvertTo-Json -Depth 5)" -ForegroundColor Cyan
+    
+    # 适配不同的响应结构
+    $isUsed = $false
+    if ($updatedTokens.data.used) { $isUsed = $updatedTokens.data.used }
+    elseif ($updatedTokens.data.attributes.used) { $isUsed = $updatedTokens.data.attributes.used }
+    elseif ($updatedTokens.used) { $isUsed = $updatedTokens.used }
+    
+    if ($isUsed -eq $true) {
         Write-Host "✅ Token 已标记为已使用" -ForegroundColor Green
     }
     else {
